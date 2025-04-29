@@ -3,6 +3,21 @@ import boto3
 import watchtower, logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy 
+from flask import has_request_context, request
+import uuid
+
+class StructuredFormatter(watchtower.CloudWatchLogFormatter):
+   def format(self, record):
+      record.msg = {
+         'timestamp': record.created,
+         'location': record.name,
+         'message': record.msg,
+      }
+      if has_request_context():
+         record.msg['request_id'] = request.environ.get('REQUEST_ID')
+         record.msg['url'] = request.environ.get('PATH_INFO')
+         record.msg['method'] = request.environ.get('REQUEST_METHOD')
+      return super().format(record)
 
 def create_app(config_overrides=None): 
    logging.basicConfig(level=logging.INFO)
@@ -22,7 +37,22 @@ def create_app(config_overrides=None):
    logging.getLogger('werkzeug').addHandler(handler)
    logging.getLogger("sqlalchemy.engine").addHandler(handler)
    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+   handler.setFormatter(StructuredFormatter())
+   ###########################################################################################################
+   logger = logging.getLogger('request')
+   logger.addHandler(handler)
 
+   @app.before_request
+   def before_request():
+      request.environ['REQUEST_ID'] = str(uuid.uuid4())
+      logger.info("Request started")
+
+   @app.after_request
+   def after_request(response):
+      logger.info("Request finished")
+      return response
+   
+   ###########################################################################################################
    # Load the models 
    from todo.models import db 
    from todo.models.todo import Todo 

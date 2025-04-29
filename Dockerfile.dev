@@ -1,6 +1,8 @@
-FROM ubuntu:24.04
+FROM --platform=linux/amd64 ubuntu:24.04
 
 ENV SQLALCHEMY_DATABASE_URI=sqlite:///:memory:
+
+
 
 # Installing dependencies and cleaning up
 RUN apt-get update && \
@@ -22,3 +24,6 @@ RUN pipx run poetry install --no-root
 # Copying our application into the container
 COPY bin bin
 COPY todo todo
+
+# ensure the file can be running
+RUN chmod +x /app/bin/docker-entrypoint.sh

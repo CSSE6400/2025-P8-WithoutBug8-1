@@ -3,6 +3,12 @@
 
 Load testing TaskOverflow, identify bottlenecks and resolve performance bottlenecks.
 
+
+
+[English](README.md) | [简体中文Chinese](README_ZH.md)
+
+
+
 Please see the [instructions](https://csse6400.uqcloud.net/practicals/week08) for more details.
 
 Update this README file with appropriate information about your project,
